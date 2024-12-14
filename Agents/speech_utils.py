@@ -3,7 +3,7 @@ import speech_recognition as sr
 from TTS.api import TTS
 
 # Initialize TTS
-tts = TTS(model_name="tts_models/en/ljspeech/tacotron2-DDC", gpu=True)
+tts = TTS(model_name="tts_models/en/ljspeech/fast_pitch", gpu=True)
 
 WAKE_WORD = "nexa"
 
@@ -24,21 +24,18 @@ def detect_wake_word():
         print("Listening for the wake word...")
         while True:
             try:
-                # Listen for the wake word with a timeout
+                # Listen for the wake word
                 wake_word_audio = recognizer.listen(source, timeout=10)
                 command = recognizer.recognize_google(wake_word_audio).lower()
                 if WAKE_WORD in command:
                     print("Wake word detected! Listening for your query...")
-                    
-                    # Adjust settings for the query
-                    recognizer.pause_threshold = 2.0
-                    recognizer.dynamic_energy_threshold = True
-                    
+
                     # Listen for the query
                     query_audio = recognizer.listen(source, timeout=15, phrase_time_limit=10)
                     text = recognizer.recognize_google(query_audio)
                     print("You said: " + text)
-                    return text
+                    return text  # Return the query
+                
             except sr.UnknownValueError:
                 print("Could not understand audio. Waiting for the wake word again...")
                 continue
@@ -46,3 +43,6 @@ def detect_wake_word():
                 print(f"Error with speech recognition service: {e}")
                 continue
 
+if __name__ == "__main__":
+    query = detect_wake_word()
+    speak(query)

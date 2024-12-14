@@ -1,5 +1,6 @@
 import time
-from speech_utils import detect_wake_word
+from speech_utils import detect_wake_word, speak
+from agent_utils import dispatch_agent
 from ollama_utils import process_with_ollama, handle_response_stream
 from timing_utils import calculate_times
 
@@ -8,24 +9,33 @@ def main():
     Main function to handle the entire speech-to-speech process.
     """
     while True:
-        # Step 1: Wait for wake word
-        start_time = time.time()
+        try:
+            # Step 1: Wait for wake word and listen to query
+            start_time = time.time()
+            
+            query = detect_wake_word()
+            
+            if query:
+                # Step 2: Determine and dispatch agent
+                print("Processing query with intent recognition...")
+                response = dispatch_agent(query)
 
-        # Step 2: Listen to query
-        query = detect_wake_word()
+                if "Sorry" in response or "Error" in response:
+                    # If no valid agent matched, fallback to Ollama processing
+                    print("Fallback to general query processing...")
+                    response = process_with_ollama('mistral', query)
+                    handle_response_stream(response)
+                else:
+                    print("Agent Response: ", response)
+                    speak(response)  # Speak the agent's response
 
-        # Step 3: Process query with Ollama
-        response = process_with_ollama('mistral', query)
-        ollama_response_time = time.time()
+                # Step 3: Timings
+                end_time = time.time()
+                calculate_times(start_time, time.time(), time.time(), end_time)
 
-        # Step 4: Handle streamed response and speak it
-        handle_response_stream(response)
-        speech_generation_time = time.time()
+        except KeyboardInterrupt:
+            print("\nExiting gracefully...")
+            break
 
-        # Step 5: Calculate and print timings
-        end_time = time.time()
-        calculate_times(start_time, ollama_response_time, speech_generation_time, end_time)
-
-# Run the main function
 if __name__ == "__main__":
     main()
