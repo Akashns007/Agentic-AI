@@ -1,8 +1,14 @@
 import os
 from crewai import Agent, Crew, Task
+from langchain_groq import ChatGroq
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 from crewai_tools import SerperDevTool
+
+llm = ChatGroq(
+    api_key=os.getenv("GROQ_API_KEY"),
+    model="groq/mixtral-8x7b-32768"
+)
 
 def fetch_internet_search_results(topic):
     """
@@ -19,10 +25,10 @@ def fetch_internet_search_results(topic):
     load_dotenv()
 
     # Define the LLM
-    llm = ChatOpenAI(
-        model="ollama/mistral",
-        base_url="http://localhost:11434"
-    )
+    # llm = ChatOpenAI(
+    #     model="ollama/mistral",
+    #     base_url="http://localhost:11434"
+    # )
 
     # Define the Internet Search Agent
     internet_search_agent = Agent(
@@ -36,7 +42,7 @@ def fetch_internet_search_results(topic):
             You are a specialized agent for web searches, extracting reliable and concise information 
             from the internet to address user queries.
         """,
-        verbose=True,
+        verbose=False,
         llm=llm,
     )
 
@@ -64,7 +70,7 @@ def fetch_internet_search_results(topic):
     crew = Crew(
         agents=[internet_search_agent],
         tasks=[internet_search_task],
-        verbose=True,
+        verbose=False,
     )
 
     # Execute the Task
@@ -89,10 +95,10 @@ def fetch_latest_news(topic):
     load_dotenv()
 
     # Define the LLM
-    llm = ChatOpenAI(
-        model="ollama/mistral",
-        base_url="http://localhost:11434"
-    )
+    # llm = ChatOpenAI(
+    #     model="ollama/mistral",
+    #     base_url="http://localhost:11434"
+    # )
 
     # Define the News Search Agent
     news_search_agent = Agent(
@@ -106,7 +112,7 @@ def fetch_latest_news(topic):
             You are a specialized agent for web searches, extracting reliable and concise news information 
             from the internet to address user queries.
         """,
-        verbose=True,
+        verbose=False,
         llm=llm,
     )
 
@@ -124,7 +130,7 @@ def fetch_latest_news(topic):
             2. Summarize the findings along with the links in a concise and clear manner.
         """,
         expected_output=""" 
-            A summarized report of relevant news information gathered about the topic.
+            A summarized report of relevant news.
         """,
         agent=news_search_agent,
         tools=[search_tool],
@@ -134,7 +140,7 @@ def fetch_latest_news(topic):
     crew = Crew(
         agents=[news_search_agent],
         tasks=[internet_search_task],
-        verbose=True,
+        verbose=False,
     )
 
     # Execute the Task

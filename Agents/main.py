@@ -18,7 +18,7 @@ def main():
             if query:
                 # Step 2: Determine and dispatch agent
                 print("Processing query with intent recognition...")
-                response = dispatch_agent(query)
+                response = str(dispatch_agent(query))
 
                 if "Sorry" in response or "Error" in response:
                     # If no valid agent matched, fallback to Ollama processing
@@ -26,8 +26,7 @@ def main():
                     response = process_with_ollama('mistral', query)
                     handle_response_stream(response)
                 else:
-                    print("Agent Response: ", response)
-                    speak(response)  # Speak the agent's response
+                    handle_response_stream(response)
 
                 # Step 3: Timings
                 end_time = time.time()
