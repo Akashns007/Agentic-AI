@@ -7,30 +7,53 @@ def process_with_ollama(model="mistral", query=''):
     """
     Processes the query with the specified Ollama model and returns the streamed response.
     """
+    system_prompt = """
+                You are an orchestrator responsible for managing conversations with the user.  
+
+                - If the user asks a question you can answer, respond directly and concisely.  
+                - If the user asks a question you cannot answer, inform them that you will delegate the query to an agent. Politely ask the user to wait while the agent processes the request.  
+
+                During the agent's processing time:  
+                - Continue the conversation with the user to maintain engagement.  
+                - Do not provide any additional information about the agent's actions or the process.  
+
+                Important Guidelines:  
+                1. Only respond to user queries if you are confident in your knowledge.  
+                2. For unknown queries, delegate them to the agent and wait for the agent's output.  
+                3. Do not provide unnecessary explanations or speculative responses.  
+
+                The agent will automatically handle and return the output to the user. Your role is to keep the conversation natural and engaging without overstepping these boundaries.
+                
+                """
     return ollama.chat(
         model=model,
-        messages=[{'role': 'system', 'content': query}],
+        messages=[{'role': 'system', 'content': system_prompt},
+                    {'role': 'user', 'content': query}],
         stream=True,
     )
     
 def process_with_groq(query=''):
     """
     Processes the query with the specified Ollama model and returns the streamed response.
-    """
-    llm = ChatGroq(
-    api_key=os.getenv("GROQ_API_KEY"),
-    model="mixtral-8x7b-32768"
-    )
+    input format:
     message =  [
         (
             "system",
             "You are an intent recognition model",
         ),
-        ("human", query),
+        ("human", instructions),
     ]
-    intent = llm.invoke(message)
+    """
     
-    return intent.content
+    llm = ChatGroq(
+    api_key=os.getenv("GROQ_API_KEY"),
+    model="mixtral-8x7b-32768"
+    )
+    groq_response = llm.invoke(query)
+    
+    return groq_response.content
+
+
 
     
 def handle_response_stream(response):
@@ -42,7 +65,7 @@ def handle_response_stream(response):
     
     for chunk in response:
         
-        if "." in paragraph_buffer and len(paragraph_buffer) > 50:  
+        if ("." in paragraph_buffer) and (len(paragraph_buffer) > 10):  
             print(paragraph_buffer)
             speak(paragraph_buffer)  
             paragraph_buffer = "" 

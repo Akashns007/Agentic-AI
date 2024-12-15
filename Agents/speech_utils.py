@@ -1,19 +1,37 @@
 import sounddevice as sd
 import speech_recognition as sr
 from TTS.api import TTS
+import soundfile as sf
 
 # Initialize TTS
 tts = TTS(model_name="tts_models/en/ljspeech/fast_pitch", gpu=True)
 
 WAKE_WORD = "nexa"
+import re
+
+def preprocess_text_for_speech(text):
+    """
+    Preprocess the text to skip URLs during TTS playback.
+    """
+    # Regular expression to match URLs
+    url_pattern = r'https?://\S+|www\.\S+'
+    # Replace URLs with a blank space to skip them
+    cleaned_text = re.sub(url_pattern, "Link", text)
+    return cleaned_text
 
 def speak(text):
     """
-    Converts the given text to speech.
+    Converts the given text to speech, skipping URLs during playback.
     """
-    audio = tts.tts(text, return_type="numpy")
-    sd.play(audio, samplerate=22050)
-    sd.wait()  # Wait until playback finishes
+    # Preprocess the text to skip URLs
+    try :
+        cleaned_text = preprocess_text_for_speech(text)
+        audio = tts.tts(cleaned_text, return_type="numpy")
+        sd.play(audio, samplerate=22050)
+        sd.wait()  # Wait until playback finishes
+    except Exception as e:
+        print(f"Error during speech playback: {e}")
+
 
 def detect_wake_word():
     """
@@ -28,6 +46,13 @@ def detect_wake_word():
                 wake_word_audio = recognizer.listen(source, timeout=10)
                 command = recognizer.recognize_google(wake_word_audio).lower()
                 if WAKE_WORD in command:
+                    
+                    data, samplerate = sf.read("example.wav")
+
+                    # Play the audio
+                    sd.play(data, samplerate)
+                    sd.wait() 
+                    
                     print("Wake word detected! Listening for your query...")
 
                     # Listen for the query
