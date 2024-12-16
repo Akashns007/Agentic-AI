@@ -47,7 +47,7 @@ def detect_wake_word():
                 command = recognizer.recognize_google(wake_word_audio).lower()
                 if WAKE_WORD in command:
                     
-                    data, samplerate = sf.read("example.wav")
+                    data, samplerate = sf.read("sounds/start.mp3")
 
                     # Play the audio
                     sd.play(data, samplerate)
@@ -58,6 +58,13 @@ def detect_wake_word():
                     # Listen for the query
                     query_audio = recognizer.listen(source, timeout=15, phrase_time_limit=10)
                     text = recognizer.recognize_google(query_audio)
+                    
+                    data, samplerate = sf.read("sounds/end.mp3")
+
+                    # Play the audio
+                    sd.play(data, samplerate)
+                    sd.wait() 
+                    
                     print("You said: " + text)
                     return text  # Return the query
                 

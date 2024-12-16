@@ -123,9 +123,8 @@ def fetch_latest_news(topic):
         description=f""" 
             Use the 'search_tool' tool to find information about the topic '{topic}'.
             You should:
-            1. Extract the main question from topic and correct the grammer errors in the topic, and input it to the tool.
-            2. Review the results returned by the tool.
-            3. Summarize the findings along with the links in a concise and clear manner.
+            1. Be sure to pass the same query to the tool dont change anything. Review the results returned by the tool.
+            2. Summarize the findings along with the links in a concise and clear manner.
         """,
         expected_output=""" 
             A summarized report of relevant news.
@@ -211,10 +210,10 @@ def extract_pdf_information():
     # Define the Task
     pdf_retrieval_task = Task(
         description=f""" 
-            Use the PDFSearchTool to process the PDF file and 
-            extract information relevant to the query: '{question}'. 
+            Use the PDFSearchTool to process the PDF file of name {pdf_path} and 
+            extract information relevant to the query: '{question}' from that pdf.
             Ensure the output is concise, accurate, and contextually aligned with the query.
-            dont explain how u did it. just give the output and nothing else.
+            dont explain how u did it. just give the output and NOTHING else.
         """,
         expected_output=""" 
             Refined text containing only the information relevant to the question.
@@ -346,7 +345,7 @@ def fetch_youtube_video_data(topic):
     youtube = build("youtube", "v3", developerKey=YOUTUBE_API_KEY)
 
     # Set max_results to 5 inside the function
-    max_results = 5
+    max_results = 3
 
     try:
         # Search for videos
@@ -414,8 +413,8 @@ def fetch_youtube_video_data(topic):
 
 if __name__ == "__main__":
     # Example usage
-    print(fetch_internet_search_results("best series of till december 2024"))
-    print(extract_pdf_information())
+    print(fetch_youtube_video_data("programming hello world in assembly"))
+    print(fetch_internet_search_results("samsung galaxy s25 expected release date"))
     
 
 
