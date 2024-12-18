@@ -9,15 +9,24 @@ tts = TTS(model_name="tts_models/en/ljspeech/fast_pitch", gpu=True)
 WAKE_WORD = "nexa"
 import re
 
+import re
+
 def preprocess_text_for_speech(text):
     """
-    Preprocess the text to skip URLs during TTS playback.
+    Preprocess the text to skip URLs and code snippets during TTS playback.
     """
-    # Regular expression to match URLs
+    # Regular expressions to match URLs and code blocks
     url_pattern = r'https?://\S+|www\.\S+'
-    # Replace URLs with a blank space to skip them
-    cleaned_text = re.sub(url_pattern, "Link", text)
+    code_block_pattern = r'```.*?```'  # Matches code blocks surrounded by triple backticks (single-line or multi-line)
+    
+    # Replace code blocks with "Code block skipped" to avoid them during TTS playback
+    text_without_code = re.sub(code_block_pattern, "Code block skipped", text, flags=re.DOTALL)
+    
+    # Replace URLs with "Link" to skip them
+    cleaned_text = re.sub(url_pattern, "Link", text_without_code)
+    
     return cleaned_text
+
 
 def speak(text):
     """

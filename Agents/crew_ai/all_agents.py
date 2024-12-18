@@ -78,7 +78,7 @@ def fetch_internet_search_results(topic):
 
 
 
-def fetch_latest_news(topic):
+def fetch_latest_news():
     """
     Function to perform a news search for a given topic using CrewAI and SerperDevTool.
     Returns a summarized result of the news query along with relevant links.
@@ -97,6 +97,8 @@ def fetch_latest_news(topic):
     #     base_url="http://localhost:11434"
     # )
 
+    topic = "lastest news from all over the world"
+    
     # Define the News Search Agent
     news_search_agent = Agent(
         role="News Search Agent",
@@ -121,7 +123,8 @@ def fetch_latest_news(topic):
     # Define the Task
     internet_search_task = Task(
         description=f""" 
-            Use the 'search_tool' tool to find information about the topic '{topic}'.
+            Use the 'search_tool' tool to find information about the latest news on the internet.
+            use the tool and input the search query {topic} to the tool and gather the news
             You should:
             1. Be sure to pass the same query to the tool dont change anything. Review the results returned by the tool.
             2. Summarize the findings along with the links in a concise and clear manner.
@@ -145,7 +148,7 @@ def fetch_latest_news(topic):
     return str(result)
 
 
-def extract_pdf_information():
+def extract_pdf_information(pdf_path, question):
     """
     Function to retrieve and refine information from a PDF file using CrewAI and PDFSearchTool.
     Returns a concise and contextually aligned result.
@@ -165,8 +168,7 @@ def extract_pdf_information():
     #     base_url="http://localhost:11434"
     # )
 
-    pdf_path=input("please provide the PDF file: ").strip()
-    question=input("What is the topic to search for: ").strip()
+    
     
     # Define the PDF Search Agent
     pdf_search_agent = Agent(
@@ -235,7 +237,7 @@ def extract_pdf_information():
 
 
 
-def extract_text_information():
+def extract_text_information(txt_path, question):
     """
     Function to retrieve and refine information from a text file using CrewAI and TXTSearchTool.
     Returns a concise and contextually aligned result.
@@ -256,8 +258,7 @@ def extract_text_information():
     # )
 
 
-    txt_path=input("please provide the Text file: ").strip()
-    question=input("What is the topic to search for: ").strip()
+    
     
     # Define the Text Search Agent
     text_search_agent = Agent(

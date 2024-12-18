@@ -27,9 +27,13 @@ def process_with_ollama(model="mistral", query=''):
     #             The agent will automatically handle and return the output to the user. Your role is to keep the conversation natural and engaging without overstepping these boundaries.
                 
     #             """
+    
+    system_prompt = """
+                    you are a conversational assistant. you will converse with the user keep your conversation concise, clean and short.    
+    """
     return ollama.chat(
         model=model,
-        messages=[#{'role': 'system', 'content': system_prompt},
+        messages=[{'role': 'system', 'content': system_prompt},
                     {'role': 'user', 'content': query}],
         stream=True,
     )

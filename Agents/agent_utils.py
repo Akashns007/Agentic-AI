@@ -1,42 +1,42 @@
+
 from crew_ai.all_agents import fetch_latest_news, fetch_internet_search_results,extract_pdf_information,extract_text_information,fetch_youtube_video_data
 from ollama_utils import handle_response_stream, process_with_groq, process_with_ollama
+
 
 def check_agent_call(text):
     """
     Determine which agent to call based on the query.
     """
     instructions = f"""
-                You are an intent recognizer. 
-                Your *ONLY* output must be a single word, chosen from the list below. Absolutely *NO* other text, explanations, or punctuation is allowed.
+                You are an intent recognizer. Your *ONLY* output must be a single word chosen from the list below. Provide *NO* explanations, punctuation, or additional text.
 
                 **Input:** User query: {text}
 
+                Your purpose is to identify whether the user's query requires specialized actions beyond the capabilities of a standard LLM. For any general query answerable by an LLM, respond with **NO**. For specialized tasks like those listed below, respond with the corresponding single word.
+
                 **Possible Outputs (Choose ONE):**
+                1. **internetSearch:** For general internet searches.
+                2. **newsSearch:** For news or latest updates.
+                3. **pdfSearch:** For PDF files or content within them.
+                4. **textSearch:** For text files or searching within them.
+                5. **youtubeSearch:** For videos, tutorials, or learning resources.
+                6. **NO:** For all other queries.
 
-                1.  **internetSearch:** If the user query refers to general internet searching.
-                2.  **newsSearch:** If the user query asks for news.
-                3.  **pdfSearch:** If the user query asks about PDF files or searching within them.
-                4.  **textSearch:** If the user query asks about text files or searching within them.
-                5.  **youtubeSearch:** If the user query asks for videos or learning resources (courses).
-                6.  **NO:** For any other type of query.
+                **RULES:**
+                1. **ONE WORD ONLY:** Respond with a single word from the list above.
+                2. **NO EXPLANATIONS:** Do not add any extra text or reasoning.
+                3. **NO PUNCTUATION:** Avoid all punctuation marks.
+                4. **CASE SENSITIVE:** Match the case of the words as given (e.g., "internetSearch").
 
-                **RULES (YOU MUST OBEY THESE):**
+                **Examples:**
+                - **Input:** "Find the latest iPhone reviews."
+                **Output:** internetSearch
+                - **Input:** "Explain quantum physics."
+                **Output:** NO
+                - **Input:** "Summarize this PDF file."
+                **Output:** pdfSearch
 
-                *   **ONE WORD ONLY:** Your entire response *must* consist of a single word selected from the list above.
-                *   **NO EXPLANATIONS:** Do not provide any additional text, reasoning, or commentary.
-                *   **NO PUNCTUATION:** Do not use periods, commas, or any other punctuation marks.
-                *   **CASE SENSITIVE:** Output must match the case of the words in the list (e.g., "internetSearch", not "InternetSearch" or "internetsearch").
-
-                **Example:**
-
-                *   **Input:** "What's the weather in London?"
-                *   **Output:** internetSearch
-
-                *   **Input:** "Find me a tutorial on Python."
-                *   **Output:** youtubeSearch
-
-                *   **Input:** "Summarize this PDF document."
-                *   **Output:** pdfSearch"""
+                """
     message =  [
         (
             "system",
@@ -60,15 +60,19 @@ def dispatch_agent(user_query):
     
     elif "newssearch" in intent:
         print("Calling News Search Agent...")
-        return fetch_latest_news(user_query)
+        return fetch_latest_news()
     
-    elif "pdfsearch" in intent:
-        print("Calling PDF Search Agent...")
-        return extract_pdf_information()
+    # elif "pdfsearch" in intent:
+    #     print("Calling PDF Search Agent...")
+    #     pdf_path=input("please provide the PDF file: ").strip()
+    #     question=input("What is the topic to search for: ").strip()
+    #     return extract_pdf_information(pdf_path, question)
     
-    elif "textsearch" in intent:
-        print("Calling Text Search Agent...")
-        return extract_text_information()
+    # elif "textsearch" in intent:        
+    #     print("Calling Text Search Agent...")
+    #     txt_path=input("please provide the Text file: ").strip()
+    #     question=input("What is the topic to search for: ").strip()
+    #     return extract_text_information(txt_path, question)
     
     elif "youtubesearch" in intent:
         print("Calling YouTube Search Agent...")
