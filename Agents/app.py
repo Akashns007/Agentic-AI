@@ -1,57 +1,84 @@
-import streamlit as st
-import os
+import gradio as gr
+import time
+from speech_utils import detect_wake_word, speak
 from agent_utils import dispatch_agent
-from ollama_utils import process_with_ollama
+from ollama_utils import process_with_ollama, handle_response_stream
+from timing_utils import calculate_times
 
-def save_uploaded_file(uploaded_file):
+
+def process_query_stream(query, use_voice):
     """
-    Save uploaded file to a temporary directory and return the file path.
+    Processes the query and yields responses in chunks.
     """
-    file_path = os.path.join(TEMP_DIR, uploaded_file.name)
-    with open(file_path, "wb") as f:
-        f.write(uploaded_file.getbuffer())
-    return file_path
+    start_time = time.time()
 
-def main():
-    # Page Title
-    st.title("AI Chat Assistant with File Processing")
-    st.write("Upload a file and interact with the AI assistant.")
+    # Handle query via voice or manual input
+    if use_voice and not query:
+        query = detect_wake_word()
+        if not query:
+            yield "Listening for wake word..."
+            return
 
-    # Upload File Section
-    uploaded_file = st.file_uploader("Upload a PDF or Text file", type=["pdf", "txt"])
-    if uploaded_file:
-        # Save the uploaded file
-        file_path = save_uploaded_file(uploaded_file)
-        st.success(f"File '{uploaded_file.name}' uploaded successfully!")
-        st.write(f"Processing the file in the background...")
+    if query:
+        # Simulating agent dispatch logic
+        response = dispatch_agent(query)
+        if "Sorry" in response or "Error" in response:
+            response_stream = process_with_ollama('mistral', query)
+            accumulated_response = ""  # Buffer to collect all chunks
 
-    # Chat Interface
-    with st.container():
-        st.subheader("Chat with the Assistant")
-        if "chat_history" not in st.session_state:
-            st.session_state.chat_history = []
+            for partial_response in handle_response_stream(response_stream):
+                accumulated_response += partial_response  # Append each chunk
+                yield accumulated_response  # Yield growing response
+        else:
+            yield response
+            speak(response)  # Optional TTS
 
-        # Input box for user query
-        user_query = st.chat_input("Enter your query here")
+        calculate_times(start_time, time.time(), time.time(), time.time())
+        return
 
-        if user_query:
-            # Process query
-            st.session_state.chat_history.append({"role": "user", "content": user_query})
-            if uploaded_file:
-                # Inject file into agent processing if required
-                response = dispatch_agent(user_query)  # Your logic handles file internally
-            else:
-                response = "No file uploaded. Please upload a file for file-related queries."
+    yield "No input received."
 
-            # Add AI response to chat history
-            st.session_state.chat_history.append({"role": "assistant", "content": response})
 
-        # Display chat history
-        for message in st.session_state.chat_history:
-            if message["role"] == "user":
-                st.chat_message("user").write(message["content"])
-            else:
-                st.chat_message("assistant").write(message["content"])
+# Gradio App with Chat-Like Interface
+with gr.Blocks() as demo:
+    gr.Markdown("## 🎤 NEXUS AI Assistant - Voice & Text Interface")
 
-if __name__ == "__main__":
-    main()
+    # Components
+    use_voice = gr.Checkbox(label="Enable Voice Mode", value=False)
+    chatbot = gr.Chatbot(label="Conversation")
+    query_box = gr.Textbox(label="Enter your query or enable Voice Mode.", lines=1, placeholder="Type your query here...")
+    submit_button = gr.Button("Submit")
+
+    # Function to handle the chat logic
+    def chatbot_response(chat_history, user_input, use_voice):
+        """
+        Update the chat history as responses are streamed.
+        """
+        # Handle voice input if enabled
+        if use_voice and not user_input:
+            user_input = detect_wake_word()
+
+        if not user_input:
+            return chat_history + [("System", "No input received.")], ""
+
+        # Add user input to the chat history (display on the right)
+        chat_history.append(("User", user_input))
+
+        # Stream assistant responses
+        accumulated_response = ""
+        chat_history.append(("Assistant", ""))  # Placeholder for the assistant's response
+
+        for response in process_query_stream(user_input, use_voice):
+            accumulated_response = response
+            # Update assistant's response in real time (display on the left)
+            chat_history[-1] = ("Assistant", accumulated_response)
+            yield chat_history, ""
+
+    # Button click behavior
+    submit_button.click(
+        fn=chatbot_response,
+        inputs=[chatbot, query_box, use_voice],
+        outputs=[chatbot, query_box]
+    )
+
+demo.launch()

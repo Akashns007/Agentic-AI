@@ -3,6 +3,7 @@ from speech_utils import detect_wake_word, speak
 from agent_utils import dispatch_agent
 from ollama_utils import process_with_groq, process_with_ollama, handle_response_stream
 from timing_utils import calculate_times
+import streamlit as st
 
 
 def main():

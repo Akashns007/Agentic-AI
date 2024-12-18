@@ -62,12 +62,11 @@ def handle_response_stream(response):
     """
     Handles the response stream from Ollama, speaking the output in chunks.
     """
-    
     paragraph_buffer = ""  # Initialize a buffer to store paragraph text
     
     for chunk in response:
-        
-        if ("." in paragraph_buffer) and (len(paragraph_buffer) > 10):  
+        yield chunk['message']['content']
+        if ("." in paragraph_buffer) and (len(paragraph_buffer) > 15):  
             print(paragraph_buffer)
             speak(paragraph_buffer)  
             paragraph_buffer = "" 
