@@ -69,7 +69,10 @@ def handle_response_stream(response):
     paragraph_buffer = ""  # Initialize a buffer to store paragraph text
     
     for chunk in response:
-        yield chunk['message']['content']
+        
+        #make sure to yield the content of the message when running in gradio
+        
+        # yield chunk['message']['content']
         if ("." in paragraph_buffer) and (len(paragraph_buffer) > 15):  
             print(paragraph_buffer)
             speak(paragraph_buffer)  
@@ -85,7 +88,7 @@ def handle_response_stream(response):
 
 
 if __name__ == '__main__':
-    res = process_with_groq(query="""you will act as an intent recognizer.
+    '''res = process_with_groq(query="""you will act as an intent recognizer.
     Your can only reply with one word and no more than that:
     user query = "look up on the internet for 5 best phones" 
     1. If the user query is refering anything about searching on the internet then you will reply with the word = 'internetSearch'
@@ -93,4 +96,6 @@ if __name__ == '__main__':
     3. if anything else you will reply with the word = 'NO'
     """
     )
-    print(res)
+    print(res)'''
+    res = process_with_ollama(query="What is the capital of France?")
+    print(handle_response_stream(res))

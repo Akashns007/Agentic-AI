@@ -22,9 +22,8 @@ def main():
                 print("Processing query with intent recognition...")
                 response = dispatch_agent(query)
                 print("please wait while I process the query.")
-                speak("please wait while I process the query.")
 
-                if ["Sorry", "Error"] in response:
+                if "Sorry" in response or "Error" in response:
                     # If no valid agent matched, fallback to Ollama processing
                     print("Fallback to general query processing...")
                     

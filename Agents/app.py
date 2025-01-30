@@ -10,7 +10,7 @@ import shutil
 
 
 # Define the storage path for uploaded files
-UPLOAD_DIR = "./crew_ai"
+UPLOAD_DIR = "./crew_ai/files/uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 def save_file(file):
